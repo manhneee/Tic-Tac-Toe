@@ -182,7 +182,22 @@ public class TicTacToePlus implements ActionListener {
         }
 
         for (JButton button : winningButtons) {
-            button.setBackground(Color.GREEN);
+            switch (winningPlayer) {
+                case 1:
+                    button.setBackground(new Color(0, 0, 255));
+                    break;
+                case 2:
+                    button.setBackground(new Color(255, 255, 0));
+                    break;
+                case 3:
+                    button.setBackground(new Color(0, 255, 0));
+                    break;
+                case 4:
+                    button.setBackground(new Color(255, 0, 0));
+                    break;
+                default:
+                    break;
+            }
         }
 
         textField.setText("Player " + winningPlayer + " wins!");
