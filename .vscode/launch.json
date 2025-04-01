@@ -1,0 +1,28 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": ""
+        },
+        {
+            "name": "C++ Launch",
+            "request": "launch",
+            "type": "cppdbg",
+            "program": "${workspaceRoot}/a.out",
+            "args": [
+                "arg1",
+                "arg2"
+            ],
+            "environment": [
+                {
+                    "name": "config",
+                    "value": "Debug"
+                }
+            ],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}
