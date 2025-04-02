@@ -17,7 +17,7 @@ public class TicTacToe implements ActionListener {
     JPanel titlePanel = new JPanel();
     JPanel buttonPanel = new JPanel();
     JLabel textField = new JLabel();
-    JButton[] buttons = new JButton[9];
+    JButton[] buttons = new JButton[100];
     boolean playerOneTurn;
 
     TicTacToe() {
@@ -38,10 +38,10 @@ public class TicTacToe implements ActionListener {
         titlePanel.setBounds(0, 0, 800, 100);
         titlePanel.add(textField);
 
-        buttonPanel.setLayout(new GridLayout(3, 3));
+        buttonPanel.setLayout(new GridLayout(10, 10));
         buttonPanel.setBackground(new Color(150, 150, 150));
 
-        for (int i = 0; i < 9; i++) {
+        for (int i = 0; i < 100; i++) {
             buttons[i] = new JButton();
             buttonPanel.add(buttons[i]);
             buttons[i].setFont(new Font("MV Boli", Font.BOLD, 120));

@@ -2,6 +2,55 @@
     "configurations": [
         {
             "type": "java",
+            "name": "TicTacToeClient4",
+            "request": "launch",
+            "mainClass": "TicTacToeClient4",
+            "projectName": "Tic-Tac-Toe_379cf8f6"
+        },
+        {
+            "type": "java",
+            "name": "TicTacToeClient3",
+            "request": "launch",
+            "mainClass": "TicTacToeClient3",
+            "projectName": "Tic-Tac-Toe_379cf8f6"
+        },
+        {
+            "type": "java",
+            "name": "TicTacToeClient2",
+            "request": "launch",
+            "mainClass": "TicTacToeClient2",
+            "projectName": "Tic-Tac-Toe_379cf8f6"
+        },
+        {
+            "type": "java",
+            "name": "TicTacToeClient1",
+            "request": "launch",
+            "mainClass": "TicTacToeClient1",
+            "projectName": "Tic-Tac-Toe_379cf8f6"
+        },
+        {
+            "type": "java",
+            "name": "TicTacToeServer",
+            "request": "launch",
+            "mainClass": "TicTacToeServer",
+            "projectName": "Tic-Tac-Toe_379cf8f6"
+        },
+        {
+            "type": "java",
+            "name": "GameClient",
+            "request": "launch",
+            "mainClass": "GameClient",
+            "projectName": "Tic-Tac-Toe_379cf8f6"
+        },
+        {
+            "type": "java",
+            "name": "GameServer",
+            "request": "launch",
+            "mainClass": "GameServer",
+            "projectName": "Tic-Tac-Toe_379cf8f6"
+        },
+        {
+            "type": "java",
             "name": "Main",
             "request": "launch",
             "mainClass": "Main",
