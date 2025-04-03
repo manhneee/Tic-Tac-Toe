@@ -50,7 +50,7 @@ public class TicTacToeClient implements ActionListener, Runnable {
         textField.setHorizontalAlignment(JLabel.CENTER);
         textField.setText("Connecting...");
         textField.setOpaque(true);
-        textField.setBackground(Color.DARK_GRAY);
+        textField.setBackground(Color.BLACK);
         textField.setForeground(Color.WHITE);
 
         titlePanel.setLayout(new BorderLayout());
@@ -94,15 +94,19 @@ public class TicTacToeClient implements ActionListener, Runnable {
                     switch (myPlayerId) {
                         case 1:
                             myPlayerName = "X";
+                            textField.setForeground(Color.BLUE);
                             break;
                         case 2:
                             myPlayerName = "Y";
+                            textField.setForeground(Color.ORANGE);
                             break;
                         case 3:
                             myPlayerName = "A";
+                            textField.setForeground(Color.GREEN);
                             break;
                         case 4:
                             myPlayerName = "B";
+                            textField.setForeground(Color.RED);
                             break;
                         default:
                             break;
