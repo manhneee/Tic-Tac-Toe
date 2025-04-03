@@ -18,6 +18,8 @@ public class TicTacToeClient implements ActionListener, Runnable {
 
     int myPlayerId = 0;
     int currentTurn = 1;
+    String myPlayerName;
+    String currentName;
 
     public static void main(String[] args) {
         new TicTacToeClient().start();
@@ -89,16 +91,48 @@ public class TicTacToeClient implements ActionListener, Runnable {
 
                 if (msg.startsWith("WELCOME")) {
                     myPlayerId = Integer.parseInt(msg.split(" ")[1]);
-                    textField.setText("You are Player " + myPlayerId);
+                    switch (myPlayerId) {
+                        case 1:
+                            myPlayerName = "X";
+                            break;
+                        case 2:
+                            myPlayerName = "Y";
+                            break;
+                        case 3:
+                            myPlayerName = "A";
+                            break;
+                        case 4:
+                            myPlayerName = "B";
+                            break;
+                        default:
+                            break;
+                    }
+                    textField.setText("You are Player " + myPlayerName);
                     disableBoard();
                 } else if (msg.startsWith("TURN")) {
                     currentTurn = Integer.parseInt(msg.split(" ")[1]);
+                    switch (currentTurn) {
+                        case 1:
+                            currentName = "X";
+                            break;
+                        case 2:
+                            currentName = "Y";
+                            break;
+                        case 3:
+                            currentName = "A";
+                            break;
+                        case 4:
+                            currentName = "B";
+                            break;
+                        default:
+                            break;
+                    }
                     if (currentTurn == myPlayerId) {
                         enableBoard();
-                        textField.setText("Your turn (Player " + myPlayerId + ")");
+                        textField.setText("Your turn (Player " + myPlayerName + ")");
                     } else {
                         enableBoard();
-                        textField.setText("Player " + currentTurn + "'s turn");
+                        textField.setText("Player " + currentName + "'s turn");
                     }
                 } else if (msg.startsWith("MOVE")) {
                     String[] parts = msg.split(" ");
@@ -117,7 +151,24 @@ public class TicTacToeClient implements ActionListener, Runnable {
                 } else if (msg.startsWith("WIN")) {
                     String[] parts = msg.split(" ");
                     int winner = Integer.parseInt(parts[1]);
-                    textField.setText("Player " + winner + " wins!");
+                    String winningPlayer = null;
+                    switch (winner) {
+                        case 1:
+                            winningPlayer = "X";
+                            break;
+                        case 2:
+                            winningPlayer = "Y";
+                            break;
+                        case 3:
+                            winningPlayer = "A";
+                            break;
+                        case 4:
+                            winningPlayer = "B";
+                            break;
+                        default:
+                            break;
+                    }
+                    textField.setText("Player " + winningPlayer + " wins!");
 
                     Color winColor = switch (winner) {
                         case 1 -> Color.CYAN;
@@ -131,7 +182,7 @@ public class TicTacToeClient implements ActionListener, Runnable {
                         int row = Integer.parseInt(parts[i]);
                         int col = Integer.parseInt(parts[i + 1]);
                         int index = row * 10 + col;
-                    
+
                         buttons[index].setBackground(winColor); // highlight winner
                     }
 

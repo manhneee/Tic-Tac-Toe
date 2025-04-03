@@ -5,6 +5,20 @@
             "name": "TicTacToeClient",
             "request": "launch",
             "mainClass": "TicTacToeClient",
+            "projectName": "Tic-Tac-Toe_a1821b6a"
+        },
+        {
+            "type": "java",
+            "name": "TicTacToeServer",
+            "request": "launch",
+            "mainClass": "TicTacToeServer",
+            "projectName": "Tic-Tac-Toe_a1821b6a"
+        },
+        {
+            "type": "java",
+            "name": "TicTacToeClient",
+            "request": "launch",
+            "mainClass": "TicTacToeClient",
             "projectName": "Tic-Tac-Toe_379cf8f6"
         },
         {
