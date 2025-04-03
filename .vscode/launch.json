@@ -2,6 +2,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "TicTacToeClient",
+            "request": "launch",
+            "mainClass": "TicTacToeClient",
+            "projectName": "Tic-Tac-Toe_379cf8f6"
+        },
+        {
+            "type": "java",
             "name": "TicTacToeClient4",
             "request": "launch",
             "mainClass": "TicTacToeClient4",

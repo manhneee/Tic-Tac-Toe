@@ -4,7 +4,7 @@ import java.awt.event.*;
 import java.io.*;
 import java.net.*;
 
-public class TicTacToeClient2 implements ActionListener, Runnable {
+public class TicTacToeClient implements ActionListener, Runnable {
 
     JFrame frame = new JFrame();
     JPanel titlePanel = new JPanel();
@@ -20,19 +20,17 @@ public class TicTacToeClient2 implements ActionListener, Runnable {
     int currentTurn = 1;
 
     public static void main(String[] args) {
-        new TicTacToeClient2().start();
+        new TicTacToeClient().start();
     }
 
     public void start() {
         setupGUI();
 
         try {
-            socket = new Socket("localhost", 12345);
+            socket = new Socket("localhost", 12345); // Change to your server IP if needed
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = new PrintWriter(socket.getOutputStream(), true);
-
             new Thread(this).start();
-
         } catch (IOException e) {
             JOptionPane.showMessageDialog(frame, "Could not connect to server");
             System.exit(1);
@@ -92,11 +90,14 @@ public class TicTacToeClient2 implements ActionListener, Runnable {
                 if (msg.startsWith("WELCOME")) {
                     myPlayerId = Integer.parseInt(msg.split(" ")[1]);
                     textField.setText("You are Player " + myPlayerId);
+                    disableBoard();
                 } else if (msg.startsWith("TURN")) {
                     currentTurn = Integer.parseInt(msg.split(" ")[1]);
                     if (currentTurn == myPlayerId) {
+                        enableBoard();
                         textField.setText("Your turn (Player " + myPlayerId + ")");
                     } else {
+                        enableBoard();
                         textField.setText("Player " + currentTurn + "'s turn");
                     }
                 } else if (msg.startsWith("MOVE")) {
@@ -114,8 +115,26 @@ public class TicTacToeClient2 implements ActionListener, Runnable {
                         case "B" -> buttons[index].setForeground(Color.RED);
                     }
                 } else if (msg.startsWith("WIN")) {
-                    int winner = Integer.parseInt(msg.split(" ")[1]);
+                    String[] parts = msg.split(" ");
+                    int winner = Integer.parseInt(parts[1]);
                     textField.setText("Player " + winner + " wins!");
+
+                    Color winColor = switch (winner) {
+                        case 1 -> Color.CYAN;
+                        case 2 -> Color.ORANGE;
+                        case 3 -> Color.GREEN;
+                        case 4 -> Color.RED;
+                        default -> Color.YELLOW;
+                    };
+
+                    for (int i = 2; i < parts.length; i += 2) {
+                        int row = Integer.parseInt(parts[i]);
+                        int col = Integer.parseInt(parts[i + 1]);
+                        int index = row * 10 + col;
+                    
+                        buttons[index].setBackground(winColor); // highlight winner
+                    }
+
                     disableBoard();
                 }
             }
@@ -128,6 +147,14 @@ public class TicTacToeClient2 implements ActionListener, Runnable {
     private void disableBoard() {
         for (JButton button : buttons) {
             button.setEnabled(false);
+        }
+    }
+
+    private void enableBoard() {
+        for (JButton button : buttons) {
+            if (button.getText().isEmpty()) {
+                button.setEnabled(true);
+            }
         }
     }
 }

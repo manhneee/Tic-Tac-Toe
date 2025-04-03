@@ -29,6 +29,7 @@ public class TicTacToeServer {
                 new Thread(player).start();
                 System.out.println("Player " + player.playerId + " connected.");
             }
+
             broadcast("START");
             broadcast("TURN " + currentPlayer);
 
@@ -46,14 +47,8 @@ public class TicTacToeServer {
     private synchronized void handleMove(int row, int col, int playerId) {
         System.out.println("Received move from Player " + playerId + " at (" + row + "," + col + ")");
 
-        if (playerId != currentPlayer) {
-            System.out.println("It's not Player " + playerId + "'s turn. It's Player " + currentPlayer + "'s turn.");
-            return;
-        }
-        if (board[row][col] != null) {
-            System.out.println("Cell already occupied at (" + row + "," + col + ")");
-            return;
-        }
+        if (playerId != currentPlayer) return;
+        if (board[row][col] != null) return;
 
         String symbol = switch (playerId) {
             case 1 -> "X";
@@ -66,38 +61,44 @@ public class TicTacToeServer {
         board[row][col] = symbol;
         broadcast("MOVE " + row + " " + col + " " + symbol);
 
-        if (checkWin(row, col, symbol)) {
-            broadcast("WIN " + playerId);
+        List<int[]> winSequence = getWinningSequence(row, col, symbol);
+        if (winSequence != null) {
+            StringBuilder winMsg = new StringBuilder("WIN " + playerId);
+            for (int[] cell : winSequence) {
+                winMsg.append(" ").append(cell[0]).append(" ").append(cell[1]);
+
+            }
+            System.out.println(winMsg.toString());
+            broadcast(winMsg.toString());
         } else {
             currentPlayer = currentPlayer % MAX_PLAYERS + 1;
             broadcast("TURN " + currentPlayer);
         }
     }
 
-    private boolean checkWin(int row, int col, String symbol) {
-        return checkDirection(row, col, symbol, 1, 0) ||
-               checkDirection(row, col, symbol, 0, 1) ||
-               checkDirection(row, col, symbol, 1, 1) ||
-               checkDirection(row, col, symbol, 1, -1);
-    }
+    private List<int[]> getWinningSequence(int row, int col, String symbol) {
+        int[][] directions = { {1, 0}, {0, 1}, {1, 1}, {1, -1} };
+        for (int[] d : directions) {
+            List<int[]> sequence = new ArrayList<>();
+            sequence.add(new int[] {row, col});
 
-    private boolean checkDirection(int row, int col, String symbol, int dRow, int dCol) {
-        int count = 1;
-        count += countConsecutive(row, col, symbol, dRow, dCol);
-        count += countConsecutive(row, col, symbol, -dRow, -dCol);
-        return count >= 4;
-    }
+            int dr = d[0], dc = d[1];
+            for (int i = 1; i < 4; i++) {
+                int r = row + i * dr, c = col + i * dc;
+                if (r < 0 || r >= BOARD_SIZE || c < 0 || c >= BOARD_SIZE) break;
+                if (!symbol.equals(board[r][c])) break;
+                sequence.add(new int[] {r, c});
+            }
+            for (int i = 1; i < 4; i++) {
+                int r = row - i * dr, c = col - i * dc;
+                if (r < 0 || r >= BOARD_SIZE || c < 0 || c >= BOARD_SIZE) break;
+                if (!symbol.equals(board[r][c])) break;
+                sequence.add(new int[] {r, c});
+            }
 
-    private int countConsecutive(int row, int col, String symbol, int dRow, int dCol) {
-        int count = 0;
-        for (int i = 1; i < 4; i++) {
-            int r = row + i * dRow;
-            int c = col + i * dCol;
-            if (r < 0 || r >= BOARD_SIZE || c < 0 || c >= BOARD_SIZE) break;
-            if (!symbol.equals(board[r][c])) break;
-            count++;
+            if (sequence.size() >= 4) return sequence;
         }
-        return count;
+        return null;
     }
 
     class ClientHandler implements Runnable {
@@ -116,7 +117,6 @@ public class TicTacToeServer {
             try {
                 out = new PrintWriter(socket.getOutputStream(), true);
                 in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
                 sendMessage("WELCOME " + playerId);
 
                 String message;
