@@ -29,7 +29,6 @@ public class TicTacToeServer {
                 new Thread(player).start();
                 System.out.println("Player " + player.playerId + " connected.");
             }
-
             broadcast("START");
             broadcast("TURN " + currentPlayer);
 

@@ -92,11 +92,14 @@ public class TicTacToeClient1 implements ActionListener, Runnable {
                 if (msg.startsWith("WELCOME")) {
                     myPlayerId = Integer.parseInt(msg.split(" ")[1]);
                     textField.setText("You are Player " + myPlayerId);
+                    disableBoard();
                 } else if (msg.startsWith("TURN")) {
+                    enableBoard();
                     currentTurn = Integer.parseInt(msg.split(" ")[1]);
                     if (currentTurn == myPlayerId) {
                         textField.setText("Your turn (Player " + myPlayerId + ")");
                     } else {
+                        enableBoard();
                         textField.setText("Player " + currentTurn + "'s turn");
                     }
                 } else if (msg.startsWith("MOVE")) {
@@ -128,6 +131,12 @@ public class TicTacToeClient1 implements ActionListener, Runnable {
     private void disableBoard() {
         for (JButton button : buttons) {
             button.setEnabled(false);
+        }
+    }
+
+    private void enableBoard() {
+        for (JButton button : buttons) {
+            button.setEnabled(true);
         }
     }
 }
