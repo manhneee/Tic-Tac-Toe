@@ -172,7 +172,11 @@ public class TicTacToeClient implements ActionListener, Runnable {
                         default:
                             break;
                     }
-                    textField.setText("Player " + winningPlayer + " wins!");
+                    if (winningPlayer == myPlayerName) {
+                        textField.setText("You win!");
+                    } else {
+                        textField.setText("Player " + winningPlayer + " wins!");
+                    }
 
                     Color winColor = switch (winner) {
                         case 1 -> Color.CYAN;

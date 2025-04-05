@@ -5,8 +5,11 @@ import java.util.*;
 public class TicTacToeServer {
 
     private static final int PORT = 12345;
+    private static final int MIN_PLAYERS = 2;
     private static final int MAX_PLAYERS = 4;
     private static final int BOARD_SIZE = 10;
+    private static final int WIN_COUNT = 4;
+    private static final int WAIT_TIME_FOR_MORE_PLAYERS = 10;
 
     private ServerSocket serverSocket;
     private final List<ClientHandler> players = new ArrayList<>();
@@ -22,12 +25,26 @@ public class TicTacToeServer {
             serverSocket = new ServerSocket(PORT);
             System.out.println("Server started. Waiting for players...");
 
-            while (players.size() < MAX_PLAYERS) {
+            while (players.size() < MIN_PLAYERS) {
                 Socket socket = serverSocket.accept();
                 ClientHandler player = new ClientHandler(socket, players.size() + 1);
                 players.add(player);
                 new Thread(player).start();
                 System.out.println("Player " + player.playerId + " connected.");
+            }
+
+            // Wait for more players for a limited time
+            serverSocket.setSoTimeout(WAIT_TIME_FOR_MORE_PLAYERS * 1000);
+            try {
+                while (players.size() < MAX_PLAYERS) {
+                    Socket socket = serverSocket.accept();
+                    ClientHandler player = new ClientHandler(socket, players.size() + 1);
+                    players.add(player);
+                    new Thread(player).start();
+                    System.out.println("Player " + player.playerId + " connected.");
+                }
+            } catch (SocketTimeoutException e) {
+                System.out.println("Waiting time elapsed. Starting with " + players.size() + " players.");
             }
 
             broadcast("START");
@@ -47,8 +64,10 @@ public class TicTacToeServer {
     private synchronized void handleMove(int row, int col, int playerId) {
         System.out.println("Received move from Player " + playerId + " at (" + row + "," + col + ")");
 
-        if (playerId != currentPlayer) return;
-        if (board[row][col] != null) return;
+        if (playerId != currentPlayer)
+            return;
+        if (board[row][col] != null)
+            return;
 
         String symbol = switch (playerId) {
             case 1 -> "X";
@@ -71,32 +90,38 @@ public class TicTacToeServer {
             System.out.println(winMsg.toString());
             broadcast(winMsg.toString());
         } else {
-            currentPlayer = currentPlayer % MAX_PLAYERS + 1;
+            currentPlayer = currentPlayer % players.size() + 1;
+            // Changed from MAX_PLAYERS to totalPlayers
             broadcast("TURN " + currentPlayer);
         }
     }
 
     private List<int[]> getWinningSequence(int row, int col, String symbol) {
-        int[][] directions = { {1, 0}, {0, 1}, {1, 1}, {1, -1} };
+        int[][] directions = { { 1, 0 }, { 0, 1 }, { 1, 1 }, { 1, -1 } };
         for (int[] d : directions) {
             List<int[]> sequence = new ArrayList<>();
-            sequence.add(new int[] {row, col});
+            sequence.add(new int[] { row, col });
 
             int dr = d[0], dc = d[1];
-            for (int i = 1; i < 4; i++) {
+            for (int i = 1; i < WIN_COUNT; i++) {
                 int r = row + i * dr, c = col + i * dc;
-                if (r < 0 || r >= BOARD_SIZE || c < 0 || c >= BOARD_SIZE) break;
-                if (!symbol.equals(board[r][c])) break;
-                sequence.add(new int[] {r, c});
+                if (r < 0 || r >= BOARD_SIZE || c < 0 || c >= BOARD_SIZE)
+                    break;
+                if (!symbol.equals(board[r][c]))
+                    break;
+                sequence.add(new int[] { r, c });
             }
-            for (int i = 1; i < 4; i++) {
+            for (int i = 1; i < WIN_COUNT; i++) {
                 int r = row - i * dr, c = col - i * dc;
-                if (r < 0 || r >= BOARD_SIZE || c < 0 || c >= BOARD_SIZE) break;
-                if (!symbol.equals(board[r][c])) break;
-                sequence.add(new int[] {r, c});
+                if (r < 0 || r >= BOARD_SIZE || c < 0 || c >= BOARD_SIZE)
+                    break;
+                if (!symbol.equals(board[r][c]))
+                    break;
+                sequence.add(new int[] { r, c });
             }
 
-            if (sequence.size() >= 4) return sequence;
+            if (sequence.size() >= WIN_COUNT)
+                return sequence;
         }
         return null;
     }
