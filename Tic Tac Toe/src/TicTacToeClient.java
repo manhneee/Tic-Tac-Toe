@@ -191,6 +191,29 @@ public class TicTacToeClient implements ActionListener, Runnable {
                     }
 
                     disableBoard();
+                } else if(msg.startsWith("DISCONNECT")){
+                    String[] parts = msg.split(" ");
+                    currentTurn = Integer.parseInt(parts[1]);
+
+                    switch (currentTurn) {
+                        case 1:
+                            currentName = "X";
+                            break;
+                        case 2:
+                            currentName = "Y";
+                            break;
+                        case 3:
+                            currentName = "A";
+                            break;
+                        case 4:
+                            currentName = "B";
+                            break;
+                        default:
+                            break;
+                    }
+                    textField.setText("Player " + currentName + "' disconnected! Game over.");
+                    disableBoard();
+
                 }
             }
         } catch (IOException e) {

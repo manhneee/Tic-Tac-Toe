@@ -130,6 +130,7 @@ public class TicTacToeServer {
                 }
             } catch (IOException e) {
                 System.out.println("Player " + playerId + " disconnected.");
+                broadcast("DISCONNECT " + playerId);
             }
         }
 
