@@ -1,31 +1,35 @@
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class TicTacToeServer {
 
-    private static final int PORT = 12345;
     private static final int MIN_PLAYERS = 2;
     private static final int MAX_PLAYERS = 4;
     private static final int BOARD_SIZE = 10;
     private static final int WIN_COUNT = 4;
-    private static final int WAIT_TIME_FOR_MORE_PLAYERS = 10;
 
     private ServerSocket serverSocket;
     private final List<ClientHandler> players = new ArrayList<>();
     private final String[][] board = new String[BOARD_SIZE][BOARD_SIZE];
     private int currentPlayer = 1;
+    private String[] playerNames = new String[4];
 
-    public static void main(String[] args) {
-        new TicTacToeServer().start();
+    private final AtomicInteger readycount = new AtomicInteger(0);
+
+    public TicTacToeServer(int PORT) {
+        try {
+            serverSocket = new ServerSocket(PORT);
+            System.out.println("Server started. Waiting for players...");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void start() {
         try {
-            serverSocket = new ServerSocket(PORT);
-            System.out.println("Server started. Waiting for players...");
-
-            while (players.size() < MIN_PLAYERS) {
+            while (players.size() < MAX_PLAYERS) {
                 Socket socket = serverSocket.accept();
                 ClientHandler player = new ClientHandler(socket, players.size() + 1);
                 players.add(player);
@@ -33,24 +37,8 @@ public class TicTacToeServer {
                 System.out.println("Player " + player.playerId + " connected.");
             }
 
-            // Wait for more players for a limited time
-            serverSocket.setSoTimeout(WAIT_TIME_FOR_MORE_PLAYERS * 1000);
-            try {
-                while (players.size() < MAX_PLAYERS) {
-                    Socket socket = serverSocket.accept();
-                    ClientHandler player = new ClientHandler(socket, players.size() + 1);
-                    players.add(player);
-                    new Thread(player).start();
-                    System.out.println("Player " + player.playerId + " connected.");
-                }
-            } catch (SocketTimeoutException e) {
-                System.out.println("Waiting time elapsed. Starting with " + players.size() + " players.");
-            }
-
-            broadcast("START");
-            broadcast("TURN " + currentPlayer);
-
-        } catch (IOException e) {
+            broadcast("WAITING_FOR_READY");
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -69,13 +57,35 @@ public class TicTacToeServer {
         if (board[row][col] != null)
             return;
 
-        String symbol = switch (playerId) {
-            case 1 -> "X";
-            case 2 -> "Y";
-            case 3 -> "A";
-            case 4 -> "B";
-            default -> "?";
-        };
+        String symbol = null;
+        switch (players.size()) {
+            case 2:
+                symbol = switch (playerId) {
+                    case 1 -> "X";
+                    case 2 -> "O";
+                    default -> "?";
+                };
+                break;
+            case 3:
+                symbol = switch (playerId) {
+                    case 1 -> "X";
+                    case 2 -> "Y";
+                    case 3 -> "Z";
+                    default -> "?";
+                };
+                break;
+            case 4:
+                symbol = switch (playerId) {
+                    case 1 -> "X";
+                    case 2 -> "Y";
+                    case 3 -> "A";
+                    case 4 -> "B";
+                    default -> "?";
+                };
+                break;
+            default:
+                break;
+        }
 
         board[row][col] = symbol;
         broadcast("MOVE " + row + " " + col + " " + symbol);
@@ -91,8 +101,7 @@ public class TicTacToeServer {
             broadcast(winMsg.toString());
         } else {
             currentPlayer = currentPlayer % players.size() + 1;
-            // Changed from MAX_PLAYERS to totalPlayers
-            broadcast("TURN " + currentPlayer);
+            broadcast("TURN " + currentPlayer + " " + playerNames[currentPlayer - 1]);
         }
     }
 
@@ -146,7 +155,17 @@ public class TicTacToeServer {
 
                 String message;
                 while ((message = in.readLine()) != null) {
-                    if (message.startsWith("MOVE")) {
+                    if (message.startsWith("READY")) {
+                        String playerName = message.split(" ")[1];
+                        playerNames[playerId - 1] = playerName;
+                        int count = readycount.incrementAndGet();
+                        System.out.println("Player " + playerId + " is ready (" + count + "/" + players.size() + ")");
+
+                        if (count >= MIN_PLAYERS && count == players.size()) {
+                            broadcast("START " + players.size());
+                            broadcast("TURN " + currentPlayer + " " + playerNames[currentPlayer - 1]);
+                        }
+                    } else if (message.startsWith("MOVE")) {
                         String[] parts = message.split(" ");
                         int row = Integer.parseInt(parts[1]);
                         int col = Integer.parseInt(parts[2]);

@@ -1,4 +1,6 @@
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
@@ -11,6 +13,7 @@ public class TicTacToeClient implements ActionListener, Runnable {
     JPanel buttonPanel = new JPanel();
     JLabel textField = new JLabel();
     JButton[] buttons = new JButton[100];
+    JButton readyButton = new JButton();
 
     Socket socket;
     BufferedReader in;
@@ -18,20 +21,21 @@ public class TicTacToeClient implements ActionListener, Runnable {
 
     int myPlayerId = 0;
     int currentTurn = 1;
+    String myPlayerSymbol;
     String myPlayerName;
+    String currentSymbol;
     String currentName;
+    int totalPlayers;
 
-    public static void main(String[] args) {
-        new TicTacToeClient().start();
-    }
-
-    public void start() {
+    public TicTacToeClient(String serverAddress, int PORT, String username) {
         setupGUI();
+        myPlayerName = username;
 
         try {
-            socket = new Socket("localhost", 12345); // Change to your server IP if needed
+            socket = new Socket(serverAddress, PORT);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = new PrintWriter(socket.getOutputStream(), true);
+
             new Thread(this).start();
         } catch (IOException e) {
             JOptionPane.showMessageDialog(frame, "Could not connect to server");
@@ -55,6 +59,22 @@ public class TicTacToeClient implements ActionListener, Runnable {
 
         titlePanel.setLayout(new BorderLayout());
         titlePanel.add(textField, BorderLayout.CENTER);
+
+        readyButton.setText("Ready");
+        readyButton.setFont(new Font("Arial", Font.BOLD, 20));
+        readyButton.setFocusable(false);
+        readyButton.setBackground(new Color(76, 175, 80)); // Green color
+        readyButton.setForeground(Color.WHITE);
+        readyButton.setBorder(new EmptyBorder(10, 20, 10, 20));
+        readyButton.addActionListener(_ -> {
+            out.println("READY " + myPlayerName);
+            readyButton.setEnabled(false);
+            readyButton.setText("Waiting...");
+            readyButton.setBackground(new Color(244, 67, 54)); // Red color when waiting
+        });
+
+        titlePanel.add(textField, BorderLayout.CENTER);
+        titlePanel.add(readyButton, BorderLayout.EAST);
 
         buttonPanel.setLayout(new GridLayout(10, 10));
 
@@ -89,54 +109,137 @@ public class TicTacToeClient implements ActionListener, Runnable {
             while ((msg = in.readLine()) != null) {
                 System.out.println("Received: " + msg);
 
-                if (msg.startsWith("WELCOME")) {
+                if (msg.startsWith("START")) {
+                    SwingUtilities.invokeLater(() -> {
+                        readyButton.setVisible(false); // Hide the ready button when game starts
+                    });
+                    totalPlayers = Integer.parseInt(msg.split(" ")[1]);
+                    break;
+                } else if (msg.startsWith("WAITING_FOR_READY")) {
+                    SwingUtilities.invokeLater(() -> {
+                        readyButton.setEnabled(true);
+                        textField.setText("Press Ready when prepared");
+                    });
+                } else if (msg.startsWith("WELCOME")) {
                     myPlayerId = Integer.parseInt(msg.split(" ")[1]);
-                    switch (myPlayerId) {
-                        case 1:
-                            myPlayerName = "X";
-                            textField.setForeground(Color.BLUE);
-                            break;
+                    switch (totalPlayers) {
                         case 2:
-                            myPlayerName = "Y";
-                            textField.setForeground(Color.ORANGE);
+                            switch (myPlayerId) {
+                                case 1:
+                                    myPlayerSymbol = "X";
+                                    textField.setForeground(Color.RED);
+                                    break;
+                                case 2:
+                                    myPlayerSymbol = "O";
+                                    textField.setForeground(Color.BLUE);
+                                    break;
+                                default:
+                                    break;
+                            }
                             break;
                         case 3:
-                            myPlayerName = "A";
-                            textField.setForeground(Color.GREEN);
+                            switch (myPlayerId) {
+                                case 1:
+                                    myPlayerSymbol = "X";
+                                    textField.setForeground(Color.GREEN);
+                                    break;
+                                case 2:
+                                    myPlayerSymbol = "Y";
+                                    textField.setForeground(Color.BLUE);
+                                    break;
+                                case 3:
+                                    myPlayerSymbol = "Z";
+                                    textField.setForeground(Color.RED);
+                                    break;
+                                default:
+                                    break;
+                            }
                             break;
                         case 4:
-                            myPlayerName = "B";
-                            textField.setForeground(Color.RED);
+                            switch (myPlayerId) {
+                                case 1:
+                                    myPlayerSymbol = "X";
+                                    textField.setForeground(Color.BLUE);
+                                    break;
+                                case 2:
+                                    myPlayerSymbol = "Y";
+                                    textField.setForeground(Color.ORANGE);
+                                    break;
+                                case 3:
+                                    myPlayerSymbol = "A";
+                                    textField.setForeground(Color.GREEN);
+                                    break;
+                                case 4:
+                                    myPlayerSymbol = "B";
+                                    textField.setForeground(Color.RED);
+                                    break;
+                                default:
+                                    break;
+                            }
                             break;
                         default:
                             break;
                     }
-                    textField.setText("You are Player " + myPlayerName);
+                    textField.setText("Welcome " + myPlayerName + " (" + myPlayerSymbol + ")");
                     disableBoard();
                 } else if (msg.startsWith("TURN")) {
                     currentTurn = Integer.parseInt(msg.split(" ")[1]);
-                    switch (currentTurn) {
-                        case 1:
-                            currentName = "X";
-                            break;
+                    currentName = msg.split(" ")[2];
+                    switch (totalPlayers) {
                         case 2:
-                            currentName = "Y";
+                            switch (currentTurn) {
+                                case 1:
+                                    currentSymbol = "X";
+                                    break;
+                                case 2:
+                                    currentSymbol = "O";
+                                    break;
+                                default:
+                                    break;
+                            }
                             break;
                         case 3:
-                            currentName = "A";
+                            switch (currentTurn) {
+                                case 1:
+                                    currentSymbol = "X";
+                                    break;
+                                case 2:
+                                    currentSymbol = "Y";
+                                    break;
+                                case 3:
+                                    currentSymbol = "Z";
+                                    break;
+                                default:
+                                    break;
+                            }
                             break;
                         case 4:
-                            currentName = "B";
+                            switch (currentTurn) {
+                                case 1:
+                                    currentSymbol = "X";
+                                    break;
+                                case 2:
+                                    currentSymbol = "Y";
+                                    break;
+                                case 3:
+                                    currentSymbol = "A";
+                                    break;
+                                case 4:
+                                    currentSymbol = "B";
+                                    break;
+                                default:
+                                    break;
+                            }
                             break;
                         default:
                             break;
                     }
                     if (currentTurn == myPlayerId) {
                         enableBoard();
-                        textField.setText("Your turn (Player " + myPlayerName + ")");
+                        textField.setText("Your turn (" + myPlayerSymbol + ")");
                     } else {
                         enableBoard();
-                        textField.setText("Player " + currentName + "'s turn");
+                        textField.setText(currentName + "'s turn");
                     }
                 } else if (msg.startsWith("MOVE")) {
                     String[] parts = msg.split(" ");
@@ -146,45 +249,70 @@ public class TicTacToeClient implements ActionListener, Runnable {
                     int index = row * 10 + col;
 
                     buttons[index].setText(symbol);
-                    switch (symbol) {
-                        case "X" -> buttons[index].setForeground(Color.BLUE);
-                        case "Y" -> buttons[index].setForeground(Color.ORANGE);
-                        case "A" -> buttons[index].setForeground(Color.GREEN);
-                        case "B" -> buttons[index].setForeground(Color.RED);
-                    }
-                } else if (msg.startsWith("WIN")) {
-                    String[] parts = msg.split(" ");
-                    int winner = Integer.parseInt(parts[1]);
-                    String winningPlayer = null;
-                    switch (winner) {
-                        case 1:
-                            winningPlayer = "X";
-                            break;
+                    switch (totalPlayers) {
                         case 2:
-                            winningPlayer = "Y";
+                            switch (symbol) {
+                                case "X" -> buttons[index].setForeground(Color.RED);
+                                case "O" -> buttons[index].setForeground(Color.BLUE);
+                            }
                             break;
                         case 3:
-                            winningPlayer = "A";
+                            switch (symbol) {
+                                case "X" -> buttons[index].setForeground(Color.GREEN);
+                                case "Y" -> buttons[index].setForeground(Color.BLUE);
+                                case "Z" -> buttons[index].setForeground(Color.RED);
+                            }
                             break;
                         case 4:
-                            winningPlayer = "B";
+                            switch (symbol) {
+                                case "X" -> buttons[index].setForeground(Color.BLUE);
+                                case "Y" -> buttons[index].setForeground(Color.ORANGE);
+                                case "A" -> buttons[index].setForeground(Color.GREEN);
+                                case "B" -> buttons[index].setForeground(Color.RED);
+                            }
                             break;
                         default:
                             break;
                     }
-                    if (winningPlayer == myPlayerName) {
+                } else if (msg.startsWith("WIN")) {
+                    String[] parts = msg.split(" ");
+                    int winner = Integer.parseInt(parts[1]);
+                    String winningPlayer = msg.split(" ")[2];
+                    if (winner == myPlayerId) {
                         textField.setText("You win!");
                     } else {
-                        textField.setText("Player " + winningPlayer + " wins!");
+                        textField.setText(winningPlayer + " wins!");
                     }
 
-                    Color winColor = switch (winner) {
-                        case 1 -> Color.CYAN;
-                        case 2 -> Color.ORANGE;
-                        case 3 -> Color.GREEN;
-                        case 4 -> Color.RED;
-                        default -> Color.YELLOW;
-                    };
+                    Color winColor = Color.WHITE;
+
+                    switch (totalPlayers) {
+                        case 2:
+                            winColor = switch (winner) {
+                                case 1 -> Color.RED;
+                                case 2 -> Color.BLUE;
+                                default -> Color.WHITE;
+                            };
+                            break;
+                        case 3:
+                            winColor = switch (winner) {
+                                case 1 -> Color.GREEN;
+                                case 2 -> Color.BLUE;
+                                case 3 -> Color.RED;
+                                default -> Color.WHITE;
+                            };
+                            break;
+                        case 4:
+                            winColor = switch (winner) {
+                                case 1 -> Color.BLUE;
+                                case 2 -> Color.ORANGE;
+                                case 3 -> Color.GREEN;
+                                case 4 -> Color.RED;
+                                default -> Color.WHITE;
+                            };
+                        default:
+                            break;
+                    }
 
                     for (int i = 2; i < parts.length; i += 2) {
                         int row = Integer.parseInt(parts[i]);
