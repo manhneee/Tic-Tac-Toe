@@ -59,6 +59,7 @@ public class JoinGameWindow {
                 int portsv = Integer.parseInt(portField.getText().trim());
                 if (!addsv.isEmpty() && !portField.getText().trim().isEmpty()) {
                     new TicTacToeClient(addsv, portsv, username);
+                    frame.dispose(); // Close the join game window
                 } else {
                     JOptionPane.showMessageDialog(frame, "Please enter an IP and port", "Error",
                             JOptionPane.ERROR_MESSAGE);
