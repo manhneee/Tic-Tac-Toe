@@ -183,7 +183,7 @@ public class TicTacToeClient implements ActionListener, Runnable {
                     SwingUtilities.invokeLater(() -> {
                         disableBoard();
                         stopCountDown();
-                        textField.setText(disconnectedPlayer + " has disconnected. GAME OVER!");
+                        textField.setText(disconnectedPlayer + " disconnected.");
                     });
                     disableBoard();
                 }
