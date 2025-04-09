@@ -9,6 +9,8 @@ public class CreateGameWindow {
     private JFrame frame;
     private JTextField addressField;
     private JTextField portField;
+    private JTextField timerField;
+    private JTextField wincountField;
     private TicTacToeServer server;
 
     public CreateGameWindow(String username) {
@@ -54,6 +56,28 @@ public class CreateGameWindow {
         gbc.gridy = 1;
         formPanel.add(portField, gbc);
 
+        // Timer label and field
+        JLabel timerLabel = new JLabel("Timer:");
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        formPanel.add(timerLabel, gbc);
+
+        timerField = new JTextField(20);
+        gbc.gridx = 1;
+        gbc.gridy = 2;
+        formPanel.add(timerField, gbc);
+
+        // Win count label and field
+        JLabel wincountLabel = new JLabel("Win count:");
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        formPanel.add(wincountLabel, gbc);
+
+        wincountField = new JTextField(20);
+        gbc.gridx = 1;
+        gbc.gridy = 3;
+        formPanel.add(wincountField, gbc);
+
         // Add form panel to frame
         frame.add(formPanel, BorderLayout.CENTER);
 
@@ -66,19 +90,23 @@ public class CreateGameWindow {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String portText = portField.getText().trim();
-                if (portText.isEmpty()) {
-                    JOptionPane.showMessageDialog(frame, "Please enter a port number", "Error",
+                String timerText = timerField.getText().trim();
+                String wincountText = wincountField.getText().trim();
+                if (portText.isEmpty() || timerText.isEmpty() || wincountText.isEmpty()) {
+                    JOptionPane.showMessageDialog(frame, "Please enter all fields", "Error",
                             JOptionPane.ERROR_MESSAGE);
                     return;
                 }
 
                 try {
                     int port = Integer.parseInt(portText);
+                    int timer = Integer.parseInt(timerText);
+                    int wincount = Integer.parseInt(wincountText);
 
                     // Start server in a new thread
                     new Thread(() -> {
                         try {
-                            server = new TicTacToeServer(port);
+                            server = new TicTacToeServer(port, wincount, timer);
                             server.start(); // start accepting clients
                         } catch (Exception ex) {
                             ex.printStackTrace();

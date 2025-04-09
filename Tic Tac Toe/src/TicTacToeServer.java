@@ -8,7 +8,6 @@ public class TicTacToeServer {
     private static final int MIN_PLAYERS = 2;
     private static final int MAX_PLAYERS = 4;
     private static final int BOARD_SIZE = 10;
-    private static final int WIN_COUNT = 4;
 
     private ServerSocket serverSocket;
     private final List<ClientHandler> players = new ArrayList<>();
@@ -18,7 +17,13 @@ public class TicTacToeServer {
 
     private final AtomicInteger readycount = new AtomicInteger(0);
 
-    public TicTacToeServer(int PORT) {
+    private int WIN_COUNT;
+    private int timer;
+
+    public TicTacToeServer(int PORT, int WIN_COUNT, int timer) {
+        this.WIN_COUNT = WIN_COUNT;
+        this.timer = timer;
+
         try {
             serverSocket = new ServerSocket(PORT);
             System.out.println("Server started. Waiting for players...");
@@ -70,9 +75,22 @@ public class TicTacToeServer {
             }
             System.out.println(winMsg.toString());
             broadcast(winMsg.toString());
+        } else if (isFull(board)) {
+            System.out.println("DRAW");
+            broadcast("DRAW");
         } else {
             currentPlayer = currentPlayer % players.size() + 1;
             broadcast("TURN " + currentPlayer + " " + playerNames[currentPlayer - 1]);
+        }
+    }
+
+    private synchronized void handleTimeout(int playerId) {
+        if (playerId == currentPlayer) {
+            System.out.println("Player " + playerId + " timed out. Switching turn.");
+            currentPlayer = currentPlayer % players.size() + 1;
+            broadcast("TURN " + currentPlayer + " " + playerNames[currentPlayer - 1]);
+        } else {
+            players.get(playerId - 1).sendMessage("ERROR Not your turn to timeout");
         }
     }
 
@@ -106,6 +124,16 @@ public class TicTacToeServer {
         return null;
     }
 
+    private boolean isFull(int[][] board) {
+        for (int[] row : board) {
+            for (int cell : row) {
+                if (cell == 0)
+                    return false;
+            }
+        }
+        return true;
+    }
+
     class ClientHandler implements Runnable {
         private final Socket socket;
         private final int playerId;
@@ -134,7 +162,7 @@ public class TicTacToeServer {
                         System.out.println("Player " + playerId + " is ready (" + count + "/" + players.size() + ")");
 
                         if (count >= MIN_PLAYERS && count == players.size()) {
-                            broadcast("START " + players.size());
+                            broadcast("START " + players.size() + " " + timer);
                             broadcast("TURN " + currentPlayer + " " + playerNames[currentPlayer - 1]);
                         }
                     } else if (message.startsWith("MOVE")) {
@@ -142,10 +170,13 @@ public class TicTacToeServer {
                         int row = Integer.parseInt(parts[1]);
                         int col = Integer.parseInt(parts[2]);
                         handleMove(row, col, playerId);
+                    } else if (message.startsWith("TIMEOUT")) {
+                        handleTimeout(playerId);
                     }
                 }
             } catch (IOException e) {
                 System.out.println("Player " + playerId + " disconnected.");
+                broadcast("DISCONNECT " + playerNames[playerId - 1]);
             }
         }
 

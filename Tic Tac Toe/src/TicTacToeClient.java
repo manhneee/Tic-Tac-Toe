@@ -24,10 +24,13 @@ public class TicTacToeClient implements ActionListener, Runnable {
     String myPlayerName;
     String currentName;
     int totalPlayers;
+    int timer;
+    int timeLeft;
+    Timer clock;
 
     public TicTacToeClient(String serverAddress, int PORT, String username) {
         setupGUI();
-        myPlayerName = username;
+        this.myPlayerName = username;
 
         try {
             socket = new Socket(serverAddress, PORT);
@@ -109,6 +112,7 @@ public class TicTacToeClient implements ActionListener, Runnable {
 
                 if (msg.startsWith("START")) {
                     totalPlayers = Integer.parseInt(msg.split(" ")[1]);
+                    timer = Integer.parseInt(msg.split(" ")[2]);
                     enableBoard();
                 } else if (msg.startsWith("WELCOME")) {
                     myPlayerId = Integer.parseInt(msg.split(" ")[1]);
@@ -136,9 +140,10 @@ public class TicTacToeClient implements ActionListener, Runnable {
                     currentName = msg.split(" ")[2];
                     if (currentTurn == myPlayerId) {
                         enableBoard();
-                        textField.setText("Your turn (" + getSymbolForPlayer(myPlayerId, totalPlayers) + ")");
+                        startCountDown(timer);
                     } else {
                         enableBoard();
+                        stopCountDown();
                         textField.setText(currentName + "'s turn");
                     }
                 } else if (msg.startsWith("WIN")) {
@@ -153,6 +158,7 @@ public class TicTacToeClient implements ActionListener, Runnable {
                         } else {
                             textField.setText(winnerName + " wins!");
                         }
+                        stopCountDown();
                     });
 
                     for (int i = 3; i < parts.length; i += 2) {
@@ -164,7 +170,21 @@ public class TicTacToeClient implements ActionListener, Runnable {
                             buttons[index].setBackground(winnerColor);
                         });
                     }
-
+                    disableBoard();
+                } else if (msg.startsWith("DRAW")) {
+                    SwingUtilities.invokeLater(() -> {
+                        textField.setText("It's a draw!");
+                        stopCountDown();
+                    });
+                    disableBoard();
+                } else if (msg.startsWith("DISCONNECT")) {
+                    String[] parts = msg.split(" ");
+                    String disconnectedPlayer = parts[1];
+                    SwingUtilities.invokeLater(() -> {
+                        disableBoard();
+                        stopCountDown();
+                        textField.setText(disconnectedPlayer + " has disconnected. GAME OVER!");
+                    });
                     disableBoard();
                 }
             }
@@ -208,6 +228,30 @@ public class TicTacToeClient implements ActionListener, Runnable {
             if (button.getText().isEmpty()) {
                 button.setEnabled(true);
             }
+        }
+    }
+
+    private void startCountDown(int timer) {
+        timeLeft = timer;
+        textField.setText("Your turn (" + getSymbolForPlayer(myPlayerId, totalPlayers) + ") - " + timeLeft + "s left");
+
+        clock = new Timer(1000, _ -> {
+            timeLeft--;
+            if (timeLeft > 0) {
+                textField.setText(
+                        "Your turn (" + getSymbolForPlayer(myPlayerId, totalPlayers) + ") - " + timeLeft + "s left");
+            } else {
+                clock.stop();
+                textField.setText("Time's up!");
+                out.println("TIMEOUT");
+            }
+        });
+        clock.start();
+    }
+
+    private void stopCountDown() {
+        if (clock != null && clock.isRunning()) {
+            clock.stop();
         }
     }
 }
