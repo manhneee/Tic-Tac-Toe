@@ -12,7 +12,7 @@ public class TicTacToeServer {
 
     private ServerSocket serverSocket;
     private final List<ClientHandler> players = new ArrayList<>();
-    private final String[][] board = new String[BOARD_SIZE][BOARD_SIZE];
+    private final int[][] board = new int[BOARD_SIZE][BOARD_SIZE];
     private int currentPlayer = 1;
     private String[] playerNames = new String[4];
 
@@ -36,8 +36,6 @@ public class TicTacToeServer {
                 new Thread(player).start();
                 System.out.println("Player " + player.playerId + " connected.");
             }
-
-            broadcast("WAITING_FOR_READY");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -52,50 +50,23 @@ public class TicTacToeServer {
     private synchronized void handleMove(int row, int col, int playerId) {
         System.out.println("Received move from Player " + playerId + " at (" + row + "," + col + ")");
 
-        if (playerId != currentPlayer)
+        if (playerId != currentPlayer) {
+            players.get(playerId - 1).sendMessage("ERROR Not your turn");
             return;
-        if (board[row][col] != null)
+        }
+        if (board[row][col] != 0) { // Check if the cell is already occupied
+            players.get(playerId - 1).sendMessage("ERROR Cell already occupied");
             return;
-
-        String symbol = null;
-        switch (players.size()) {
-            case 2:
-                symbol = switch (playerId) {
-                    case 1 -> "X";
-                    case 2 -> "O";
-                    default -> "?";
-                };
-                break;
-            case 3:
-                symbol = switch (playerId) {
-                    case 1 -> "X";
-                    case 2 -> "Y";
-                    case 3 -> "Z";
-                    default -> "?";
-                };
-                break;
-            case 4:
-                symbol = switch (playerId) {
-                    case 1 -> "X";
-                    case 2 -> "Y";
-                    case 3 -> "A";
-                    case 4 -> "B";
-                    default -> "?";
-                };
-                break;
-            default:
-                break;
         }
 
-        board[row][col] = symbol;
-        broadcast("MOVE " + row + " " + col + " " + symbol);
+        board[row][col] = playerId; // Store the player ID in the board
+        broadcast("MOVE " + row + " " + col + " " + playerId); // Broadcast the move
 
-        List<int[]> winSequence = getWinningSequence(row, col, symbol);
+        List<int[]> winSequence = getWinningSequence(row, col, playerId);
         if (winSequence != null) {
-            StringBuilder winMsg = new StringBuilder("WIN " + playerId);
+            StringBuilder winMsg = new StringBuilder("WIN " + playerId + " " + playerNames[playerId - 1]);
             for (int[] cell : winSequence) {
                 winMsg.append(" ").append(cell[0]).append(" ").append(cell[1]);
-
             }
             System.out.println(winMsg.toString());
             broadcast(winMsg.toString());
@@ -105,7 +76,7 @@ public class TicTacToeServer {
         }
     }
 
-    private List<int[]> getWinningSequence(int row, int col, String symbol) {
+    private List<int[]> getWinningSequence(int row, int col, int playerId) {
         int[][] directions = { { 1, 0 }, { 0, 1 }, { 1, 1 }, { 1, -1 } };
         for (int[] d : directions) {
             List<int[]> sequence = new ArrayList<>();
@@ -116,7 +87,7 @@ public class TicTacToeServer {
                 int r = row + i * dr, c = col + i * dc;
                 if (r < 0 || r >= BOARD_SIZE || c < 0 || c >= BOARD_SIZE)
                     break;
-                if (!symbol.equals(board[r][c]))
+                if (board[r][c] != playerId)
                     break;
                 sequence.add(new int[] { r, c });
             }
@@ -124,7 +95,7 @@ public class TicTacToeServer {
                 int r = row - i * dr, c = col - i * dc;
                 if (r < 0 || r >= BOARD_SIZE || c < 0 || c >= BOARD_SIZE)
                     break;
-                if (!symbol.equals(board[r][c]))
+                if (board[r][c] != playerId)
                     break;
                 sequence.add(new int[] { r, c });
             }
@@ -152,6 +123,7 @@ public class TicTacToeServer {
                 out = new PrintWriter(socket.getOutputStream(), true);
                 in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 sendMessage("WELCOME " + playerId);
+                sendMessage("WAITING_FOR_READY");
 
                 String message;
                 while ((message = in.readLine()) != null) {
