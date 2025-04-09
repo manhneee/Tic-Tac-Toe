@@ -11,6 +11,7 @@ public class TicTacToeClient implements ActionListener, Runnable {
     JPanel buttonPanel = new JPanel();
     JLabel textField = new JLabel();
     JButton[] buttons = new JButton[100];
+    
 
     Socket socket;
     BufferedReader in;
@@ -21,13 +22,18 @@ public class TicTacToeClient implements ActionListener, Runnable {
     String myPlayerName;
     String currentName;
 
+    Timer turnTimer;
+    int timeLeft;
+    int timeout;
+
+
     public static void main(String[] args) {
-        new TicTacToeClient().start();
+        new TicTacToeClient().start(20);
     }
 
-    public void start() {
+    public void start(int timeout) {
         setupGUI();
-
+        this.timeout = timeout;
         try {
             socket = new Socket("localhost", 12345); // Change to your server IP if needed
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -74,8 +80,8 @@ public class TicTacToeClient implements ActionListener, Runnable {
     @Override
     public void actionPerformed(ActionEvent e) {
         int index = Integer.parseInt(e.getActionCommand());
-        int row = index / 10;
-        int col = index % 10;
+        Integer row = index / 10;
+        Integer col = index % 10;
 
         if (buttons[index].getText().isEmpty() && currentTurn == myPlayerId) {
             out.println("MOVE " + row + " " + col);
@@ -133,9 +139,11 @@ public class TicTacToeClient implements ActionListener, Runnable {
                     }
                     if (currentTurn == myPlayerId) {
                         enableBoard();
-                        textField.setText("Your turn (Player " + myPlayerName + ")");
+                        //textField.setText("Your turn (Player " + myPlayerName + ")");
+                        startCountdown(timeout);
                     } else {
                         enableBoard();
+                        stopCountdown();
                         textField.setText("Player " + currentName + "'s turn");
                     }
                 } else if (msg.startsWith("MOVE")) {
@@ -174,8 +182,10 @@ public class TicTacToeClient implements ActionListener, Runnable {
                     }
                     if (winningPlayer == myPlayerName) {
                         textField.setText("You win!");
+                        stopCountdown();
                     } else {
                         textField.setText("Player " + winningPlayer + " wins!");
+                        stopCountdown();
                     }
 
                     Color winColor = switch (winner) {
@@ -217,7 +227,21 @@ public class TicTacToeClient implements ActionListener, Runnable {
                     }
                     textField.setText("Player " + currentName + "' disconnected! Game over.");
                     disableBoard();
-
+                } else if (msg.startsWith("TIMEOUT")) {
+                    String[] parts = msg.split(" ");
+                    currentTurn = Integer.parseInt(parts[1]);
+                    if (currentTurn == myPlayerId) {
+                        textField.setText("You skipped your turn.");
+                    } else {
+                        String name = switch (currentTurn) {
+                            case 1 -> "X";
+                            case 2 -> "Y";
+                            case 3 -> "A";
+                            case 4 -> "B";
+                            default -> "?";
+                        };
+                        textField.setText("Player " + name + " skipped their turn.");
+                    }
                 }
             }
         } catch (IOException e) {
@@ -239,4 +263,29 @@ public class TicTacToeClient implements ActionListener, Runnable {
             }
         }
     }
+
+    private void startCountdown(int initialTime) {
+        timeLeft = initialTime;
+        textField.setText("Your turn (Player " + myPlayerId + ") - " + timeLeft + "s left");
+    
+        turnTimer = new Timer(1000, e -> {
+            timeLeft--;
+            if (timeLeft > 0) {
+                textField.setText("Your turn (Player " + myPlayerId + ") - " + timeLeft + "s left");
+            } else {
+                turnTimer.stop();
+                textField.setText("Time's up! Waiting...");
+                out.println("TIMEOUT"); 
+            }
+        });
+        turnTimer.start();
+    }
+    
+    
+    private void stopCountdown() {
+        if (turnTimer != null && turnTimer.isRunning()) {
+            turnTimer.stop();
+        }
+    }
+    
 }

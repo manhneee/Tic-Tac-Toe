@@ -1,3 +1,7 @@
+// ==========================
+// TicTacToeServer.java
+// ==========================
+
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -8,7 +12,7 @@ public class TicTacToeServer {
     private static final int MIN_PLAYERS = 2;
     private static final int MAX_PLAYERS = 4;
     private static final int BOARD_SIZE = 10;
-    private static final int WIN_COUNT = 4;
+    private static final int WIN_COUNT = 5;
     private static final int WAIT_TIME_FOR_MORE_PLAYERS = 10;
 
     private ServerSocket serverSocket;
@@ -33,7 +37,6 @@ public class TicTacToeServer {
                 System.out.println("Player " + player.playerId + " connected.");
             }
 
-            // Wait for more players for a limited time
             serverSocket.setSoTimeout(WAIT_TIME_FOR_MORE_PLAYERS * 1000);
             try {
                 while (players.size() < MAX_PLAYERS) {
@@ -61,13 +64,10 @@ public class TicTacToeServer {
         }
     }
 
-    private synchronized void handleMove(int row, int col, int playerId) {
+    private synchronized void handleMove(Integer row, Integer col, int playerId) {
         System.out.println("Received move from Player " + playerId + " at (" + row + "," + col + ")");
 
-        if (playerId != currentPlayer)
-            return;
-        if (board[row][col] != null)
-            return;
+        if (playerId != currentPlayer || board[row][col] != null) return;
 
         String symbol = switch (playerId) {
             case 1 -> "X";
@@ -85,43 +85,42 @@ public class TicTacToeServer {
             StringBuilder winMsg = new StringBuilder("WIN " + playerId);
             for (int[] cell : winSequence) {
                 winMsg.append(" ").append(cell[0]).append(" ").append(cell[1]);
-
             }
-            System.out.println(winMsg.toString());
             broadcast(winMsg.toString());
         } else {
             currentPlayer = currentPlayer % players.size() + 1;
-            // Changed from MAX_PLAYERS to totalPlayers
+            broadcast("TURN " + currentPlayer);
+        }
+    }
+
+    private synchronized void handleTimeout(int playerId) {
+        if (playerId == currentPlayer) {
+            System.out.println("Player " + playerId + " timed out. Skipping turn.");
+            broadcast("TIMEOUT " + playerId);
+            currentPlayer = currentPlayer % players.size() + 1;
             broadcast("TURN " + currentPlayer);
         }
     }
 
     private List<int[]> getWinningSequence(int row, int col, String symbol) {
-        int[][] directions = { { 1, 0 }, { 0, 1 }, { 1, 1 }, { 1, -1 } };
+        int[][] directions = {{1, 0}, {0, 1}, {1, 1}, {1, -1}};
         for (int[] d : directions) {
             List<int[]> sequence = new ArrayList<>();
-            sequence.add(new int[] { row, col });
+            sequence.add(new int[]{row, col});
 
             int dr = d[0], dc = d[1];
             for (int i = 1; i < WIN_COUNT; i++) {
                 int r = row + i * dr, c = col + i * dc;
-                if (r < 0 || r >= BOARD_SIZE || c < 0 || c >= BOARD_SIZE)
-                    break;
-                if (!symbol.equals(board[r][c]))
-                    break;
-                sequence.add(new int[] { r, c });
+                if (r < 0 || r >= BOARD_SIZE || c < 0 || c >= BOARD_SIZE || !symbol.equals(board[r][c])) break;
+                sequence.add(new int[]{r, c});
             }
             for (int i = 1; i < WIN_COUNT; i++) {
                 int r = row - i * dr, c = col - i * dc;
-                if (r < 0 || r >= BOARD_SIZE || c < 0 || c >= BOARD_SIZE)
-                    break;
-                if (!symbol.equals(board[r][c]))
-                    break;
-                sequence.add(new int[] { r, c });
+                if (r < 0 || r >= BOARD_SIZE || c < 0 || c >= BOARD_SIZE || !symbol.equals(board[r][c])) break;
+                sequence.add(new int[]{r, c});
             }
 
-            if (sequence.size() >= WIN_COUNT)
-                return sequence;
+            if (sequence.size() >= WIN_COUNT) return sequence;
         }
         return null;
     }
@@ -148,9 +147,11 @@ public class TicTacToeServer {
                 while ((message = in.readLine()) != null) {
                     if (message.startsWith("MOVE")) {
                         String[] parts = message.split(" ");
-                        int row = Integer.parseInt(parts[1]);
-                        int col = Integer.parseInt(parts[2]);
+                        Integer row = Integer.parseInt(parts[1]);
+                        Integer col = Integer.parseInt(parts[2]);
                         handleMove(row, col, playerId);
+                    } else if (message.startsWith("TIMEOUT")) {
+                        handleTimeout(playerId);
                     }
                 }
             } catch (IOException e) {
