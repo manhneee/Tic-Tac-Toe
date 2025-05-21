@@ -1,0 +1,11 @@
+{
+    "java.project.sourcePaths": [
+        "lib",
+        "src"
+    ],
+    "java.project.referencedLibraries": [
+        "d:\\VGU\\3rd_year\\CompNet2\\project\\Tic-Tac-Toe\\Tic Tac Toe\\lib\\sqlite-jdbc-3.49.1.0.jar",
+        "d:\\VGU\\3rd_year\\CompNet2\\project\\Tic-Tac-Toe\\Tic Tac Toe\\lib\\mysql-connector-j-9.3.0.jar"
+    ],
+    "java.project.outputPath": "bin"
+}

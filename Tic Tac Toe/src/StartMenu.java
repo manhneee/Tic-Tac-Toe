@@ -5,7 +5,7 @@ import java.awt.event.ActionListener;
 
 public class StartMenu {
     private JFrame frame;
-    private JTextField usernameField;
+    private DatabaseHelper dbHelper = new DatabaseHelper();
 
     public StartMenu() {
         initialize();
@@ -15,66 +15,66 @@ public class StartMenu {
         // Create the main frame
         frame = new JFrame("Game Start Menu");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(400, 300);
+        frame.setSize(400, 200);
         frame.setLayout(new BorderLayout(10, 10));
         frame.setLocationRelativeTo(null); // Center the window
 
-        // Create panel for the form
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-
-        // Username label and field
-        JLabel usernameLabel = new JLabel("Username:");
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        formPanel.add(usernameLabel, gbc);
-
-        usernameField = new JTextField(15);
-        gbc.gridx = 1;
-        gbc.gridy = 0;
-        formPanel.add(usernameField, gbc);
-
-        // Add form panel to frame
-        frame.add(formPanel, BorderLayout.CENTER);
-
         // Create panel for buttons
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-
-        // Create Game button
-        JButton createGameButton = new JButton("Create Game");
-        createGameButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String username = usernameField.getText().trim();
-                if (!username.isEmpty()) {
-                    JOptionPane.showMessageDialog(frame, "Creating game for: " + username);
-                    new CreateGameWindow(username);
-                    frame.dispose();
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(45, 20, 10, 20));
+        // Register button
+        JButton registerButton = new JButton("Register");
+        registerButton.addActionListener(_ -> {
+            JTextField userField = new JTextField();
+            JPasswordField passField = new JPasswordField();
+            Object[] fields = {
+                "Username:", userField,
+                "Password:", passField
+            };
+            int option = JOptionPane.showConfirmDialog(frame, fields, "Register", JOptionPane.OK_CANCEL_OPTION);
+            if (option == JOptionPane.OK_OPTION) {
+                String user = userField.getText().trim();
+                String pass = new String(passField.getPassword());
+                if (user.isEmpty() || pass.isEmpty()) {
+                    JOptionPane.showMessageDialog(frame, "Please enter a username and password", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                if (dbHelper.registerUser(user, pass)) {
+                    JOptionPane.showMessageDialog(frame, "Registration successful!");
                 } else {
-                    JOptionPane.showMessageDialog(frame, "Please enter a username", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(frame, "Registration failed (username may exist)", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
-        buttonPanel.add(createGameButton);
+        buttonPanel.add(registerButton);
 
-        // Join Game button
-        JButton joinGameButton = new JButton("Join Game");
-        joinGameButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String username = usernameField.getText().trim();
-                if (!username.isEmpty()) {
-                    JOptionPane.showMessageDialog(frame, "Joining game as: " + username);
-                    new JoinGameWindow(username);
-                    frame.dispose();
+        // Login button
+        JButton loginButton = new JButton("Login");
+        loginButton.addActionListener(_ -> {
+            JTextField userField = new JTextField();
+            JPasswordField passField = new JPasswordField();
+            Object[] fields = {
+                "Username:", userField,
+                "Password:", passField
+            };
+            int option = JOptionPane.showConfirmDialog(frame, fields, "Login", JOptionPane.OK_CANCEL_OPTION);
+            if (option == JOptionPane.OK_OPTION) {
+                String user = userField.getText().trim();
+                String pass = new String(passField.getPassword());
+                if (user.isEmpty() || pass.isEmpty()) {
+                    JOptionPane.showMessageDialog(frame, "Please enter a username and password", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                if (dbHelper.loginUser(user, pass)) {
+                    JOptionPane.showMessageDialog(frame, "Login successful!");
+                    frame.dispose(); // Close StartMenu window
+                    new SignedInMenu(user); // Open new SignedInMenu window
                 } else {
-                    JOptionPane.showMessageDialog(frame, "Please enter a username", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(frame, "Login failed", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
-        buttonPanel.add(joinGameButton);
+        buttonPanel.add(loginButton);
 
         // Quit button
         JButton quitButton = new JButton("Quit");
@@ -92,13 +92,9 @@ public class StartMenu {
         buttonPanel.add(quitButton);
 
         // Add button panel to frame
-        frame.add(buttonPanel, BorderLayout.SOUTH);
+        frame.add(buttonPanel, BorderLayout.CENTER);
 
         // Make the frame visible
         frame.setVisible(true);
-    }
-
-    public String getUsername() {
-        return usernameField.getText().trim();
     }
 }
