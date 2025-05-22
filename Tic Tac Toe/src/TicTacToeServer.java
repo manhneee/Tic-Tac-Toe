@@ -75,9 +75,24 @@ public class TicTacToeServer {
             }
             System.out.println(winMsg.toString());
             broadcast(winMsg.toString());
+            // --- Ranking update logic ---
+            DatabaseHelper dbHelper = new DatabaseHelper();
+            // Winner gets +10
+            dbHelper.updateRanking(playerNames[playerId - 1], 10);
+            // Others get -8
+            for (int i = 0; i < players.size(); i++) {
+                if (i != (playerId - 1)) {
+                    dbHelper.updateRanking(playerNames[i], -8);
+                }
+            }
         } else if (isFull(board)) {
             System.out.println("DRAW");
             broadcast("DRAW");
+            // --- Ranking update logic for draw ---
+            DatabaseHelper dbHelper = new DatabaseHelper();
+            for (int i = 0; i < players.size(); i++) {
+                dbHelper.updateRanking(playerNames[i], 5);
+            }
         } else {
             currentPlayer = currentPlayer % players.size() + 1;
             broadcast("TURN " + currentPlayer + " " + playerNames[currentPlayer - 1]);
