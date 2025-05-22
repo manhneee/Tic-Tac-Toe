@@ -1,0 +1,7 @@
+{
+    "java.project.sourcePaths": [],
+    "java.project.referencedLibraries": [
+        "Tic Tac Toe\\lib\\mysql-connector-j-9.3.0.jar",
+        "Tic Tac Toe\\lib\\sqlite-jdbc-3.49.1.0.jar"
+    ]
+}
