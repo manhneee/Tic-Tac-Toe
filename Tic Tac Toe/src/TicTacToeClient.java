@@ -117,6 +117,7 @@ public class TicTacToeClient implements ActionListener, Runnable {
                 } else if (msg.startsWith("WELCOME")) {
                     myPlayerId = Integer.parseInt(msg.split(" ")[1]);
                 } else if (msg.startsWith("WAITING_FOR_READY")) {
+                    disableBoard();
                     SwingUtilities.invokeLater(() -> {
                         readyButton.setEnabled(true);
                         readyButton.setText("Ready");

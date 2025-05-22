@@ -1,8 +1,8 @@
 import java.sql.*;
 
 public class DatabaseHelper {
-    private static final String DB_URL = "jdbc:mysql://localhost:3306/tictactoe";
-    private static final String DB_USER = "root";
+    private static final String DB_URL = "jdbc:mysql://172.16.137.86:3306/tictactoe";
+    private static final String DB_USER = "remoteuser";
     private static final String DB_PASS = "";
     public DatabaseHelper() {
         try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS)) {
