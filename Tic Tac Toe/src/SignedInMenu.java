@@ -15,7 +15,7 @@ public class SignedInMenu {
         // Create the main frame
         frame = new JFrame("Signed In Menu");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(400, 250);
+        frame.setSize(450, 250);
         frame.setLayout(new BorderLayout(10, 10));
         frame.setLocationRelativeTo(null); // Center the window
 
@@ -37,10 +37,21 @@ public class SignedInMenu {
         gbc.gridx = 1;
         gbc.gridy = 0;
         formPanel.add(usernameField, gbc);
-
+        
         // Add form panel to frame
         frame.add(formPanel, BorderLayout.CENTER);
 
+        DatabaseHelper dbHelper = new DatabaseHelper();
+        int ranking = dbHelper.getRanking(username);
+        JLabel rankingLabel = new JLabel("Ranking Score: " + ranking);
+        rankingLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        rankingLabel.setHorizontalAlignment(SwingConstants.CENTER);
+
+        // Add padding on top using an empty border
+        rankingLabel.setBorder(BorderFactory.createEmptyBorder(15, 0, 0, 0));
+
+        frame.add(rankingLabel, BorderLayout.NORTH);
+        
         // Create panel for buttons
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
 
@@ -66,6 +77,16 @@ public class SignedInMenu {
         });
         buttonPanel.add(joinGameButton);
 
+        //Scoreboard button
+        JButton scoreboardButton = new JButton("Scoreboard");
+        scoreboardButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                new ScoreboardWindow(username);
+            }
+        });
+        buttonPanel.add(scoreboardButton);
+
         // Logout button
         JButton logoutButton = new JButton("Logout");
         logoutButton.addActionListener(new ActionListener() {
@@ -81,23 +102,6 @@ public class SignedInMenu {
             }
         });
         buttonPanel.add(logoutButton);
-
-        // Quit button
-        JButton quitButton = new JButton("Quit");
-        quitButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int confirm = JOptionPane.showConfirmDialog(frame,
-                        "Are you sure you want to quit?", "Confirm Quit",
-                        JOptionPane.YES_NO_OPTION);
-                if (confirm == JOptionPane.YES_OPTION) {
-                    System.exit(0);
-                }
-            }
-        });
-        buttonPanel.add(quitButton);
-
-        
 
         // Add button panel to frame
         frame.add(buttonPanel, BorderLayout.SOUTH);

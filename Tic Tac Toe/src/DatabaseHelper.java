@@ -1,8 +1,8 @@
 import java.sql.*;
 
 public class DatabaseHelper {
-    private static final String DB_URL = "jdbc:mysql://172.16.137.86:3306/tictactoe";
-    private static final String DB_USER = "remoteuser";
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/tictactoe";
+    private static final String DB_USER = "root";
     private static final String DB_PASS = "";
     public DatabaseHelper() {
         try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS)) {
@@ -38,5 +38,49 @@ public class DatabaseHelper {
             e.printStackTrace();
             return false;
         }
+    }
+
+    public int getRanking(String username) {
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS)) {
+            String query = "SELECT ranking FROM users WHERE username = ?";
+            PreparedStatement stmt = conn.prepareStatement(query);
+            stmt.setString(1, username);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("ranking");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public void updateRanking(String username, int delta) {
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS)) {
+            String query = "UPDATE users SET ranking = ranking + ? WHERE username = ?";
+            PreparedStatement stmt = conn.prepareStatement(query);
+            stmt.setInt(1, delta);
+            stmt.setString(2, username);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public java.util.List<String[]> getAllUserRankings() {
+        java.util.List<String[]> list = new java.util.ArrayList<>();
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS)) {
+            String query = "SELECT username, ranking FROM users ORDER BY ranking DESC";
+            PreparedStatement stmt = conn.prepareStatement(query);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                String username = rs.getString("username");
+                String ranking = String.valueOf(rs.getInt("ranking"));
+                list.add(new String[]{username, ranking});
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 }

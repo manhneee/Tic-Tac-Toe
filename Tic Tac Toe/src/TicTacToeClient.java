@@ -14,7 +14,7 @@ public class TicTacToeClient implements ActionListener, Runnable {
     JLabel textField = new JLabel();
     JButton[] buttons = new JButton[100];
     JButton readyButton = new JButton();
-
+    
     Socket socket;
     BufferedReader in;
     PrintWriter out;
@@ -27,6 +27,7 @@ public class TicTacToeClient implements ActionListener, Runnable {
     int timer;
     int timeLeft;
     Timer clock;
+    private boolean gameEnded = false;
 
     public TicTacToeClient(String serverAddress, int PORT, String username) {
         setupGUI();
@@ -39,8 +40,24 @@ public class TicTacToeClient implements ActionListener, Runnable {
 
             new Thread(this).start();
         } catch (IOException e) {
-            JOptionPane.showMessageDialog(frame, "Could not connect to server");
-            System.exit(1);
+            SwingUtilities.invokeLater(() -> {
+                int option = JOptionPane.showOptionDialog(
+                    frame,
+                    "\"Could not connect to server\"",
+                    "Connection Error",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.ERROR_MESSAGE,
+                    null,
+                    new Object[]{"Back to Menu", "Exit"},
+                    "Back to Menu"
+                );
+                if (option == JOptionPane.YES_OPTION) {
+                    frame.dispose();
+                    new SignedInMenu(myPlayerName);
+                } else if (option == JOptionPane.NO_OPTION) {
+                    System.exit(1);
+                }
+            });
         }
     }
 
@@ -172,12 +189,60 @@ public class TicTacToeClient implements ActionListener, Runnable {
                         });
                     }
                     disableBoard();
+
+                    SwingUtilities.invokeLater(() -> {
+                        if (!gameEnded) {
+                            gameEnded = true;
+                            int option = JOptionPane.showOptionDialog(
+                                frame,
+                                "Game over!\nDo you want to go back to the menu?",
+                                "Game Over",
+                                JOptionPane.YES_NO_OPTION,
+                                JOptionPane.QUESTION_MESSAGE,
+                                null,
+                                new Object[]{"Back to Menu", "Exit"},
+                                "Back to Menu"
+                            );
+                            if (option == JOptionPane.YES_OPTION) {
+                                frame.dispose();
+                                new SignedInMenu(myPlayerName);
+                            } else if (option == JOptionPane.NO_OPTION) {
+                                System.exit(0);
+                            }
+                        }
+                    });
+
+
                 } else if (msg.startsWith("DRAW")) {
                     SwingUtilities.invokeLater(() -> {
                         textField.setText("It's a draw!");
                         stopCountDown();
                     });
                     disableBoard();
+
+
+                    SwingUtilities.invokeLater(() -> {
+                        if (!gameEnded) {
+                            gameEnded = true;
+                            int option = JOptionPane.showOptionDialog(
+                                frame,
+                                "Game over!\nDo you want to go back to the menu?",
+                                "Game Over",
+                                JOptionPane.YES_NO_OPTION,
+                                JOptionPane.QUESTION_MESSAGE,
+                                null,
+                                new Object[]{"Back to Menu", "Exit"},
+                                "Back to Menu"
+                            );
+                            if (option == JOptionPane.YES_OPTION) {
+                                frame.dispose();
+                                new SignedInMenu(myPlayerName);
+                            } else if (option == JOptionPane.NO_OPTION) {
+                                System.exit(0);
+                            }
+                        }
+                    });
+
                 } else if (msg.startsWith("DISCONNECT")) {
                     String[] parts = msg.split(" ");
                     String disconnectedPlayer = parts[1];
@@ -185,13 +250,51 @@ public class TicTacToeClient implements ActionListener, Runnable {
                         disableBoard();
                         stopCountDown();
                         textField.setText(disconnectedPlayer + " disconnected.");
+                        // Show a message dialog
+                        if (!gameEnded) {
+                            gameEnded = true;
+                            int option = JOptionPane.showOptionDialog(
+                                frame,
+                                "Connection lost.\nDo you want to go back to the menu?",
+                                "Connection Lost",
+                                JOptionPane.YES_NO_OPTION,
+                                JOptionPane.ERROR_MESSAGE,
+                                null,
+                                new Object[]{"Back to Menu", "Exit"},
+                                "Back to Menu"
+                            );
+                            if (option == JOptionPane.YES_OPTION) {
+                                frame.dispose();
+                                new SignedInMenu(myPlayerName);
+                            } else if (option == JOptionPane.NO_OPTION) {
+                                System.exit(1);
+                            }
+                        }
                     });
                     disableBoard();
                 }
             }
         } catch (IOException e) {
-            JOptionPane.showMessageDialog(frame, "Connection lost.");
-            System.exit(1);
+            // Handle the exception
+            // Show a back to menu dialog
+            SwingUtilities.invokeLater(() -> {
+                int option = JOptionPane.showOptionDialog(
+                    frame,
+                    "Connection lost.\nDo you want to go back to the menu?",
+                    "Connection Lost",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.ERROR_MESSAGE,
+                    null,
+                    new Object[]{"Back to Menu", "Exit"},
+                    "Back to Menu"
+                );
+                if (option == JOptionPane.YES_OPTION) {
+                    frame.dispose();
+                    new SignedInMenu(myPlayerName);
+                } else if (option == JOptionPane.NO_OPTION) {
+                    System.exit(1);
+                }
+            });
         }
     }
 
