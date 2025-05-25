@@ -68,20 +68,14 @@ public class JoinGameWindow {
         });
         buttonPanel.add(ConnectButton);
 
-        // Quit button
-        JButton quitButton = new JButton("Quit");
-        quitButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int confirm = JOptionPane.showConfirmDialog(frame,
-                        "Are you sure you want to quit?", "Confirm Quit",
-                        JOptionPane.YES_NO_OPTION);
-                if (confirm == JOptionPane.YES_OPTION) {
-                    System.exit(0);
-                }
-            }
+        // Cancel button
+        JButton cancelButton = new JButton("Cancel");
+        cancelButton.addActionListener(_ -> {
+            frame.dispose(); // Close the create game window
+            new SignedInMenu(username); // Open the signed-in menu
+            
         });
-        buttonPanel.add(quitButton);
+        buttonPanel.add(cancelButton);
 
         // Add button panel to frame
         frame.add(buttonPanel, BorderLayout.SOUTH);

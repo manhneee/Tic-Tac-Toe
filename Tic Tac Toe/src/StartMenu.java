@@ -15,13 +15,24 @@ public class StartMenu {
         // Create the main frame
         frame = new JFrame("Game Start Menu");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(400, 200);
+        frame.setSize(350, 350);
         frame.setLayout(new BorderLayout(10, 10));
         frame.setLocationRelativeTo(null); // Center the window
 
         // Create panel for buttons
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        buttonPanel.setBorder(BorderFactory.createEmptyBorder(45, 20, 10, 20));
+        JPanel buttonPanel = new JPanel(new GridLayout(5, 1, 10, 10));
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(20, 80, 20, 80));
+        
+        // Play As Guest button
+        JButton guestButton = new JButton("Play As Guest");
+        guestButton.addActionListener(_ -> {
+            String guestName = "Guest" + (int)(Math.random() * 10000);
+            frame.dispose();
+            new SignedInMenu(guestName);
+        });
+        buttonPanel.add(guestButton);   
+
+
         // Register button
         JButton registerButton = new JButton("Register");
         registerButton.addActionListener(_ -> {
@@ -76,6 +87,13 @@ public class StartMenu {
         });
         buttonPanel.add(loginButton);
 
+        // Scoreboard button
+        JButton scoreboardButton = new JButton("Scoreboard");
+        scoreboardButton.addActionListener(_ -> {
+            new ScoreboardWindow();
+        });
+        buttonPanel.add(scoreboardButton);
+        
         // Quit button
         JButton quitButton = new JButton("Quit");
         quitButton.addActionListener(new ActionListener() {
