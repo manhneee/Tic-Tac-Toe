@@ -4,9 +4,10 @@ public class DatabaseHelper {
     private static final String DB_URL = "jdbc:mysql://localhost:3306/tictactoe";
     private static final String DB_USER = "root";
     private static final String DB_PASS = "";
+
     public DatabaseHelper() {
         try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS)) {
-            String createTable = "CREATE TABLE IF NOT EXISTS users (username VARCHAR(255) PRIMARY KEY, password VARCHAR(255) NOT NULL)";
+            String createTable = "CREATE TABLE IF NOT EXISTS users (username VARCHAR(255) PRIMARY KEY, password VARCHAR(255) NOT NULL, ranking INT DEFAULT 0)";
             conn.createStatement().execute(createTable);
         } catch (SQLException e) {
             e.printStackTrace();
@@ -14,17 +15,17 @@ public class DatabaseHelper {
     }
 
     public boolean registerUser(String username, String password) {
-    try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS)) {
-        String query = "INSERT INTO users (username, password) VALUES (?, ?)";
-        PreparedStatement stmt = conn.prepareStatement(query);
-        stmt.setString(1, username);
-        stmt.setString(2, password);
-        stmt.executeUpdate();
-        return true;
-    } catch (SQLException e) {
-        return false; // Username already exists or error
+        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS)) {
+            String query = "INSERT INTO users (username, password) VALUES (?, ?)";
+            PreparedStatement stmt = conn.prepareStatement(query);
+            stmt.setString(1, username);
+            stmt.setString(2, password);
+            stmt.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            return false; // Username already exists or error
+        }
     }
-}
 
     public boolean loginUser(String username, String password) {
         try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS)) {
@@ -76,7 +77,7 @@ public class DatabaseHelper {
             while (rs.next()) {
                 String username = rs.getString("username");
                 String ranking = String.valueOf(rs.getInt("ranking"));
-                list.add(new String[]{username, ranking});
+                list.add(new String[] { username, ranking });
             }
         } catch (SQLException e) {
             e.printStackTrace();
