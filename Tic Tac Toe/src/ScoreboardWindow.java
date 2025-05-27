@@ -4,6 +4,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
+
 public class ScoreboardWindow {
     public ScoreboardWindow() {
         this(null); // Default behavior with no highlighting
@@ -25,7 +26,7 @@ public class ScoreboardWindow {
         // Data
         DatabaseHelper dbHelper = new DatabaseHelper();
         List<String[]> data = dbHelper.getAllUserRankings();
-        String[] columnNames = {"Username", "Ranking"};
+        String[] columnNames = { "Username", "Ranking" };
 
         DefaultTableModel model = new DefaultTableModel(columnNames, 0) {
             @Override
@@ -48,8 +49,8 @@ public class ScoreboardWindow {
         DefaultTableCellRenderer highlightRenderer = new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value,
-                                                           boolean isSelected, boolean hasFocus,
-                                                           int row, int column) {
+                    boolean isSelected, boolean hasFocus,
+                    int row, int column) {
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
                 String rowUsername = table.getValueAt(row, 0).toString();
                 if (currentUsername != null && rowUsername.equals(currentUsername)) {
@@ -74,7 +75,7 @@ public class ScoreboardWindow {
         // Close button
         JButton closeButton = new JButton("Close");
         closeButton.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        closeButton.addActionListener(_ -> frame.dispose());
+        closeButton.addActionListener(e -> frame.dispose());
 
         JPanel bottomPanel = new JPanel();
         bottomPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
