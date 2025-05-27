@@ -70,10 +70,10 @@ public class JoinGameWindow {
 
         // Cancel button
         JButton cancelButton = new JButton("Cancel");
-        cancelButton.addActionListener(_ -> {
+        cancelButton.addActionListener(e -> {
             frame.dispose(); // Close the create game window
             new SignedInMenu(username); // Open the signed-in menu
-            
+
         });
         buttonPanel.add(cancelButton);
 
